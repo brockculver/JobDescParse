@@ -27,7 +27,7 @@ class PromptGUI:
         print(ResumeParser(resFile).get_extracted_data())
 
     def JDSelect(self):
-        jdFile = filedialog.askopenfilename(initialdir = "C:\\",title = "Select file",filetypes = (("docx files","*.docx"),("all files","*.*")))
+        jdFile = filedialog.askopenfilename(initialdir = "C:\\Users\\brock\\OneDrive\\Desktop\\BokoMaru\\ReadfromJobApplication\\Job Descriptions",title = "Select file",filetypes = (("docx files","*.docx"),("all files","*.*")))
         self.JDselectionMade.pack()
         tst=JDparser(jdFile)
         print(tst.get_attributes())
