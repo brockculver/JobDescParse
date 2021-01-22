@@ -62,7 +62,7 @@ class JDparser:
 
     def getShortestPathWords(self, desc):
         failedWords=[]
-        shortestPathWords=["ShortestPathWords: "]
+        shortestPathWords=[]
 
         for w in desc:
             try:
@@ -70,15 +70,15 @@ class JDparser:
                     shortestPathWords.append(w)
             except:
                     failedWords.append(w)
-
+        shortestPathWords=set(shortestPathWords)
+        shortestPathWords=["ShortestPathWords: "]+list(shortestPathWords)
         return shortestPathWords
 
 
     def getMajorWords(self, desc, major):
         edInfo=edR()
         stopLoop=0
-        majorWords=["Major Words: "]
-
+        majorWords=[]
         for i in major:
             if (i =='computer science' or i =='data science' or i == 'information systems' or i =='engineering' or i =='math') and stopLoop==0:
                 stopLoop=1
@@ -93,13 +93,14 @@ class JDparser:
                             if x == len(skillSet)-1:
                                 majorWords.append(edInfo.skillsByMajorCS[z])
                                 # print("match skill by cs keyword:", edInfo.skillsByMajorCS[z])
-
+        majorWords=set(majorWords)
+        majorWords=["Major Words: "]+list(majorWords)
         return majorWords
 
 
     def getSoftSkills(self,desc):
         edInfo=edR()
-        softSkills=["Soft Skills: "]
+        softSkills=[]
         for w in range(len(desc)):
             for z in range(len(edInfo.softSkillSet)):
                 skillSet = edInfo.softSkillSet[z].split(" ")
@@ -108,6 +109,9 @@ class JDparser:
                         break
                     if x == len(skillSet)-1:
                         softSkills.append(edInfo.softSkillSet[z])
+
+        softSkills=set(softSkills)
+        softSkills=["Soft Skills: "]+list(softSkills)
         return softSkills
 
     def getSkillWords(self, desc, major):
@@ -124,12 +128,112 @@ class JDparser:
 
         return [commonWords,shortPathWords,majorWords,softWords]
 
+    def mkAllPhrases(self,skillWords):
+        phrases=[]
+
+        phrases.append(self.mkMajorPhrases(skillWords[2]))
+        phrases.append(self.mkSoftPhrases(skillWords[3]))
+        phrases.append(self.mkMostCommonPhrases(skillWords[0]))
+        phrases.append(self.mkSkillPhrases(skillWords[1]))
+        return phrases
+
+    def mkSkillPhrases(self,skills):
+        skills.remove(skills[0])
+        skillz=''
+        for x in range(len(skills)):
+            skillz=skillz+skills[x]+', '
+            if x %10==0:
+                skillz=skillz+"\n"
+        skillz=skillz+"\n"
+        return skillz
+
+    def mkMostCommonPhrases(self,skills):
+        skills.remove(skills[0])
+        mstcmn=''
+        for x in range(len(skills)):
+            mstcmn=mstcmn+skills[x][0]+', '
+        mstcmn=mstcmn+'\n'
+        return mstcmn
+
+    def mkMajorPhrases(self, skills):
+        try:
+            count=0
+
+            skills.remove(skills[0])
+            skills.sort(key=len)
+            skillsToDelete=[]
+
+            for s in range(len(skills)):
+                if s<(len(skills)-1):
+                    for i in range(s+1, len(skills)):
+                        split2nd=skills[i].split(' ')
+                        for j in range(len(split2nd)):
+                            if skills[s]==split2nd[j]:
+                                skillsToDelete.append(skills[s])
+                                break
+
+            for s in skillsToDelete:
+                skills.remove(s)
+            if (len(skills))>1:
+                majorPhrase="Additional technical skills include "
+                if (len(skills))>7:
+                    majorPhrase=majorPhrase+": "
+                for word in skills:
+                    count=count+1
+                    majorPhrase=majorPhrase+word+", "
+                    if count %10==0:
+                        majorPhrase=majorPhrase+"\n"
+                majorPhrase=majorPhrase+'and other competencies.'
+            else:
+                majorPhrase="Additionally, technical proficiency with "+skills[0]
+
+            majorPhrase=majorPhrase+'\n'
+        except:
+            majorPhrase='No major match or no technical skills\n'
+
+        return majorPhrase
+
+    def mkSoftPhrases(self, skills):
+        count=0
+        skills.remove(skills[0])
+        skills.sort(key=len)
+        skillsToDelete=[]
+        for s in range(len(skills)):
+            if s<(len(skills)-1):
+                for i in range(s+1, len(skills)):
+                    split2nd=skills[i].split(' ')
+                    for j in range(len(split2nd)):
+                        if skills[s]==split2nd[j]:
+                            skillsToDelete.append(skills[s])
+                            break
+        for s in skillsToDelete:
+            skills.remove(s)
+        if (len(skills))>1:
+            softPhrase="Strong soft skills include "
+            if (len(skills))>7:
+                softPhrase=softPhrase+": "
+            for word in skills:
+                count=count+1
+                softPhrase=softPhrase+word+", "
+                if count %10==0:
+                    softPhrase=softPhrase+"\n"
+            softPhrase=softPhrase+'and others.'
+        else:
+            softPhrase="Often described as "+skills[0]
+
+        softPhrase=softPhrase+'\n'
+        return softPhrase
+
+
+    def getMajorPhrase(self):
+        major=self.majReq(self.jobDesc)
+        skills=self.getSkillWords(self.jobDesc, major)
 
     def get_attributes(self):
         education=self.degReq(self.jobDesc)
         major=self.majReq(self.jobDesc)
         skills=self.getSkillWords(self.jobDesc, major)
-        return["Attributes Detected of the Job Description: Education: ", education, " Major: ", major," Skills: ", skills]
+        return skills
 
 
     def __init__(self, DocName):
